@@ -1,0 +1,59 @@
+
+@startuml
+
+!define red <color:red><b>
+
+' 타이틀 배경
+skinparam TitleBorderRoundCorner 15
+skinparam TitleBorderColor black
+skinparam TitleBackgroundColor white
+' 도형 배경
+skinparam activityBackgroundColor white
+skinparam activityDiamondBackgroundColor white
+
+title 따살 인터넷/TV 가입 사전체크
+floating note: CombPreChkBo.chkDetailOP
+
+start
+:결합 회선 리스트;
+repeat :개별 서비스계약;
+if (인터넷 또는 TV) then (No)
+    :SKIP;
+else (Yes)
+    if (사전체크 스킵대상\n서비스계약) then (Yes)
+        note right
+            < CW_SYS_BAS >
+            SYS_GROUP_ID : TGT_SKIP_AUTH
+            SYS_CD_ID : SYS_CD_ID
+        end note
+        :W/A\n대상자;
+        #LightBlue: 결합가입 가능;
+    else (No) 
+        if (베이스 인터넷/TV) then (Yes)
+            partition #LightYellow 베이스회선 {
+                : 사전체크 skip;
+                #LightBlue: 결합가입 가능;
+            }
+        else (No)
+            partition #LightYellow 추가회선 {
+                skinparam activityDiamondBackgroundColor Yellow
+                if (신규개통, 우수기변\n 익월 말 이내 최초 결합) then (Yes)
+                    : 사전체크 pass;
+                    #LightBlue: 결합가입 가능;
+                skinparam activityDiamondBackgroundColor basic
+                elseif (스폰서 약정만료) then (Yes)
+                    : 사전체크 pass;    
+                    #LightBlue: 결합가입 가능;
+                else (No)
+                    : 사전체크 fail;
+                    : 제약 msg;
+                    #LightBlue: **결합가입 불가**;
+                endif
+            }
+        endif
+    endif
+endif
+backward :다음 서비스계약;
+repeat while (마지막 서비스계약) is (No) not (Yes)
+stop
+@enduml
